@@ -58,17 +58,17 @@ class MTGScraper():
             # price = driver.find_elements_by_xpath("//section[@class='product-listings']/div/div[@class='product-listing__pricing']/span[@class='product-listing__price']")
     
     def get_SCRY_price(self):
-        self.response = requests.get(f"{SCRY_API}/cards/search?q=is%3Areserved")
+        self.response = requests.get(f"{SCRY_API}/cards/search?q=is%3Areserved+prefer:oldest")
         # self.response = requests.get(f"{SCRY_API}/cards/search?as=grid&order=name&q=is%3Areserved")
         self.results=self.response.json()
-        print(self.response.text)
 
     def get_info(self):
-        self.get_SCRY_price()      
+        self.get_SCRY_price()     
         # for row in self.results["data"]:
         #     yield row
 
         for i in range(0,len(self.results['data'])):
+
             multiverse_ID = self.results['data'][i]['multiverse_ids']
             card_name=self.results['data'][i]['name']
             set_name=self.results['data'][i]['set_name']
@@ -96,11 +96,11 @@ class MTGScraper():
 # print(df)
 scraper = MTGScraper()
 
-# scraper.get_info()
+scraper.get_info()
 
-# scraper.make_df(scraper.get_info())
+scraper.make_df(scraper.get_info())
 
-scraper.get_SCRY_price()
+# scraper.get_SCRY_price()
 
 # Reserved List
 
