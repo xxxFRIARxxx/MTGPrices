@@ -7,7 +7,10 @@ class MTGDatabase():
 
         self.con = sqlite3.connect('MTGDatabase.db')
         with self.con:
-            self.con.execute(f"""CREATE TABLE IF NOT EXISTS ALLCARDS (tcg_id INT, card_name TEXT, card_set TEXT, "{self.todays_date}" FLOAT);""")
+            if int(str(datetime.time(datetime.now())).replace(":","").replace(".","")) < 160800000000:
+                self.con.execute(f"""CREATE TABLE IF NOT EXISTS ALLCARDS (tcg_id INT, card_name TEXT, card_set TEXT, "{self.todays_date}" FLOAT);""")
+            else:
+                self.con.execute(f"""CREATE TABLE IF NOT EXISTS ALLCARDS (tcg_id INT, card_name TEXT, card_set TEXT, "{self.todays_date + 1}" FLOAT);""")
             
     def make_db(self, json):  
         print("Buckle Up:  ~ 10s until Database Generator go BRRRRRRRRR")
