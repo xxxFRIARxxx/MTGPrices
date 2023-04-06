@@ -5,22 +5,16 @@ the_json = MTGJson.MtgJson()
 database = MTGDatabase.MTGDatabase()
 
 the_json.get_latest_json_url()
-the_json.manage_url_text_file()
-# database.make_db(the_json.open_json())
+the_json.url_and_db_manager()
 
-database.get_card_by_name("Disintegrate")
+
 # database.get_card_by_tcgID("2110")
+# database.add_card_to_db(the_json.generator_from_json())
 
 
-
-
-
-
-# TODO: check url against most recent json
-# TODO: write card name, card set, and card price to db
 # TODO: https://www.tcgplayer.com/product/INSERT_TCG_PLAYER_ID_HERE?page=1
 
-
+# TODO: Use date time so that if the original database is created after 4pm (after the update), it uses today_date +1 , and before 4pm, it uses today's date.
 
 
 # Reserved List

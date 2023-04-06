@@ -1,30 +1,39 @@
 import sqlite3
-import MTGJson
+from datetime import datetime
 
 class MTGDatabase(): 
     def __init__(self):
-        # self.card_list = []
+        self.todays_date = int(str(datetime.date(datetime.now())).replace("-",""))
+
         self.con = sqlite3.connect('MTGDatabase.db')
         with self.con:
-            self.con.execute("""CREATE TABLE IF NOT EXISTS ALLCARDS (
-                card_name TEXT,
-                card_set TEXT,
-                mkt_price FLOAT,
-                tcg_id INT
-            );
-        """)
+            self.con.execute(f"""CREATE TABLE IF NOT EXISTS ALLCARDS (tcg_id INT, card_name TEXT, card_set TEXT, "{self.todays_date}" FLOAT);""")
             
     def make_db(self, json):  
-        sql = 'INSERT INTO ALLCARDS (card_name, card_set, mkt_price, tcg_id) values (?, ?, ?, ?)'
+        print("Buckle Up:  ~ 10s until Database Generator go BRRRRRRRRR")
+        sql = f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, "{self.todays_date}") values (?, ?, ?, ?)"""
         with self.con:
             for i in json:
-                data = (i[0], i[1], i[2], i[3])
+                data = (i[3], i[0], i[1], i[2])
                 print(data)
                 self.con.executemany(sql, (data,))
                 self.con.commit() 
 
     def make_column(self):
-        pass
+        with self.con:
+            self.con.execute(f"""ALTER TABLE ALLCARDS ADD "{self.todays_date + 1}" FLOAT;""")
+
+    def update_price(self, json):
+        with self.con:
+            for i in json:
+                self.con.execute(f"""UPDATE ALLCARDS SET "{self.todays_date + 1}" = "{i[2]}" WHERE tcg_id = "{i[-1]}";""")
+
+    def add_card_to_db(self, json):
+        with self.con:
+            for i in json:
+                new_row = (i[3], i[0], i[1], i[2])
+                print(new_row)
+                self.con.execute(f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, "{self.todays_date + 1}") SELECT ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM ALLCARDS WHERE tcg_id = ?)""", new_row + (new_row[0],))
   
     def get_card_by_name(self, player_search):  # Gathers all cards of a selected name from the DB. 
         with self.con:
@@ -41,7 +50,7 @@ class MTGDatabase():
                 print("No exact match found for that name.  (Capitalization matters for now)")
             return self.card_list_by_name # Returns either an empty list, or a list of dictionaries, with each dictionary containing 1 version of the card with the specified name.   
         
-    def get_card_by_tcgID(self, tcg_search):
+    def get_card_by_tcgID(self, tcg_search):  # Gathers card of a specific TCG ID # from the DB.
         with self.con:
             data = self.con.execute(f"""SELECT * FROM ALLCARDS WHERE tcg_id = ("{tcg_search}");""")
             self.card_list_by_tcg= data.fetchall()
@@ -53,6 +62,5 @@ class MTGDatabase():
                 for cards in dict_list:
                     print(cards)
             elif self.card_list_by_tcg == []:
-                print("No exact match found for that name.  (Capitalization matters for now)")
-            return self.card_list_by_tcg # Returns either an empty list, or a dictionary of the card with that specific TCG ID#.   
-        
+                print("No match found for that TCG ID #")
+            return self.card_list_by_tcg # Returns either an empty list, or a dictionary of the card with that specific TCG ID#.           

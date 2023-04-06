@@ -1,5 +1,8 @@
-from urllib.request import urlopen
 import json
+from MTGDatabase import MTGDatabase
+from urllib.request import urlopen
+
+database = MTGDatabase()
 
 class MtgJson():
     def __init__(self):
@@ -14,22 +17,26 @@ class MtgJson():
                     self.bulk_json_url = dictionary["download_uri"]
                     return self.bulk_json_url
 
-    def manage_url_text_file(self):
+    def url_and_db_manager(self):
         with open("json_url.txt", "a+") as text_file:
             text_file.seek(0)
             lines = text_file.readlines()
             if lines == []:
                 text_file.write(f"{self.bulk_json_url}\n")
                 print("No previous pricing URL found.  The latest URL has been recorded.")
+                database.make_db(self.generator_from_json())
             elif lines != []:
                 last_line = lines[-1].rstrip()
                 if last_line == self.bulk_json_url:
-                    print("Same pricing as last time.  Check again between 4 and 4:15pm CST.")
+                    print("Same pricing as last time.  Check again around 4:08pm CST.")
                 elif last_line != self.bulk_json_url:
                     text_file.write(f"{self.bulk_json_url}\n")
                     print("New pricing found!  The latest URL has been recorded.")
+                    database.make_column()
+                    database.update_price(self.generator_from_json())
+                    database.add_card_to_db(self.generator_from_json())
                     
-    def open_json(self):
+    def generator_from_json(self):
         with urlopen(f"{self.bulk_json_url}") as default_cards_response:
             default_cards_data = json.loads(default_cards_response.read().decode('utf-8'))
             for card_object in default_cards_data:
