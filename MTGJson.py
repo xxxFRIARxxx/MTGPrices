@@ -1,4 +1,5 @@
 import json
+
 from MTGDatabase import MTGDatabase
 from urllib.request import urlopen
 
@@ -8,7 +9,7 @@ class MtgJson():
     def __init__(self):
         self.bulk_json_url = None
 
-    def get_latest_json_url(self): 
+    def get_latest_json_url(self):
         bulk_data_update_url = "https://api.scryfall.com/bulk-data/"
         with urlopen(bulk_data_update_url) as response:
             data = json.loads(response.read().decode('utf-8'))
@@ -24,6 +25,7 @@ class MtgJson():
             if lines == []:
                 text_file.write(f"{self.bulk_json_url}\n")
                 print("No previous pricing URL found.  The latest URL has been recorded.")
+                database.json_length(self.generator_from_json())
                 database.make_db(self.generator_from_json())
             elif lines != []:
                 last_line = lines[-1].rstrip()
@@ -41,4 +43,6 @@ class MtgJson():
             default_cards_data = json.loads(default_cards_response.read().decode('utf-8'))
             for card_object in default_cards_data:
                 if (card_object.get("tcgplayer_id") is not None) and (card_object["prices"]["usd"] is not None):
-                    yield card_object["name"], card_object["set_name"], card_object["prices"]["usd"], card_object.get('tcgplayer_id')
+                    # yield card_object["name"], card_object["set"], card_object["prices"]["usd"], card_object["reserved"], card_object.get('tcgplayer_id')
+                    yield card_object.get('tcgplayer_id'), card_object["name"], card_object["set"], card_object["reserved"], card_object["prices"]["usd"]
+                    
