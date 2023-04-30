@@ -35,22 +35,29 @@ class MTGDatabase():
     def make_column(self):
         with self.con:
             self.con.execute(f"""ALTER TABLE ALLCARDS ADD "{self.todays_date + 1}" FLOAT;""")
+            # if int(str(datetime.time(datetime.now())).replace(":","").replace(".","")) < 160800000000:
+            #     self.con.execute(f"""ALTER TABLE ALLCARDS ADD "{self.todays_date}" FLOAT;""")
+            # else:
+            #     self.con.execute(f"""ALTER TABLE ALLCARDS ADD "{self.todays_date + 1}" FLOAT;""")
 
-    def update_price(self, json):
+    def update_price(self, json): # TODO:  Maybe "insert" instead of "update" for speed?
         with self.con:
             with alive_bar(title="Updating pricing...", spinner="waves", bar=False, enrich_print=False, monitor_end=False, stats_end=False, elapsed_end="Done!") as bar:
                 for i in json:
-                    data = [(i[-1], i[0])]
+                    data = ((i[-1], i[0]),)
                     bar()
                     self.con.executemany(f"""UPDATE ALLCARDS SET "{self.todays_date + 1}" = ? WHERE tcg_id = ? """, data)
 
-    def add_card_to_db(self, json):
+    def add_card_to_db(self, json): # TODO:  Look at this again
         with self.con:
             with alive_bar(title="Adding cards to DB...", spinner="waves", bar=False, enrich_print=False) as bar:
                 for i in json:
                     new_row = (i[0], i[1], i[2], i[3], i[4])
+                    # data = ((item,) for item in new_row)
+                    data = (new_row + (new_row[0],),)
                     bar()
-                    self.con.execute(f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date + 1}") SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM ALLCARDS WHERE tcg_id = ?)""", new_row + (new_row[0],))
+                    self.con.executemany(f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date + 1}") SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM ALLCARDS WHERE tcg_id = ?)""", data)
+                    # self.con.execute(f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date + 1}") SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM ALLCARDS WHERE tcg_id = ?)""", new_row + (new_row[0],))
   
     def get_card_by_name(self, player_search):  # Gathers all cards of a selected name from the DB. 
         with self.con:

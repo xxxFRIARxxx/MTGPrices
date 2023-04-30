@@ -9,6 +9,7 @@ the_json.url_and_db_manager()
 
 # database.make_column() 
 # database.update_price(the_json.generator_from_json())
+# database.add_card_to_db(the_json.generator_from_json())
 # database.get_card_by_tcgID("2110")
 # database.add_card_to_db(the_json.generator_from_json())
 
@@ -16,7 +17,11 @@ the_json.url_and_db_manager()
 # TODO: https://www.tcgplayer.com/product/INSERT_TCG_PLAYER_ID_HERE?page=1
 
 
+# TODO:
 
+# https://data.scryfall.io/default-cards/default-cards-20230412090629.json
+# https://data.scryfall.io/default-cards/default-cards-20230412210940.json
+# https://data.scryfall.io/default-cards/default-cards-20230413090643.json
 
 
 
