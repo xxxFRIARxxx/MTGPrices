@@ -38,8 +38,8 @@ class MtgJson():
                 elif last_line != self.bulk_json_url:
                     text_file.write(f"{self.bulk_json_url}\n")
                     print("New pricing found!  The latest URL has been recorded.")
-                    database.make_column()
-                    database.update_price(self.generator_from_json())
+                    # database.make_column()
+                    # database.update_price(self.generator_from_json())
                     database.add_card_to_db(self.generator_from_json())
                     
     def generator_from_json(self):
