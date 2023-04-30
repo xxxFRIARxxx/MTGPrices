@@ -31,16 +31,16 @@ class MtgJson():
                 last_line = lines[-1].rstrip()
                 x = last_line.split("-")[-1]
                 # if x.startswith()
-                print(database.today)
-                print(x)
-                # if last_line == self.bulk_json_url:
-                #     print("Same pricing as last time.  Check again around 4:08pm CST.")
-                # elif last_line != self.bulk_json_url:
-                #     text_file.write(f"{self.bulk_json_url}\n")
-                #     print("New pricing found!  The latest URL has been recorded.")
-                #     database.make_column()
-                #     database.update_price(self.generator_from_json())
-                #     database.add_card_to_db(self.generator_from_json())
+                # print(database.today)
+                # print(x)
+                if last_line == self.bulk_json_url:
+                    print("Same pricing as last time.  Check again around 4:08pm CST.")
+                elif last_line != self.bulk_json_url:
+                    text_file.write(f"{self.bulk_json_url}\n")
+                    print("New pricing found!  The latest URL has been recorded.")
+                    database.make_column()
+                    database.update_price(self.generator_from_json())
+                    database.add_card_to_db(self.generator_from_json())
                     
     def generator_from_json(self):
         with urlopen(f"{self.bulk_json_url}") as default_cards_response:
