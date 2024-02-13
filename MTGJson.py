@@ -29,17 +29,21 @@ class MtgJson():
                 database.make_db(self.generator_from_json())
             elif lines != []:
                 last_line = lines[-1].rstrip()
-                x = last_line.split("-")[-1]
-                # if x.startswith()
-                # print(database.today)
-                # print(x)
-                if last_line == self.bulk_json_url:
-                    print("Same pricing as last time.  Check again around 4:08pm CST.")
+                q = last_line.split("-")[-1].rsplit(".")[0].rsplit(str(database.todays_date))[-1]
+                j = self.bulk_json_url.split("-")[-1].rsplit(".")[0].rsplit(str(database.todays_date))[-1]
+                # print(last_line)
+                # print(q)                
+                # print(j) 
+                if (last_line == self.bulk_json_url) or (str(database.todays_date) in last_line): #or (q == j): commented out code is for 2-a-day pricing
+                    print("Same pricing as last time.  Check again tomorrow after 4:08am/pm CST.")
                 elif last_line != self.bulk_json_url:
+                    # if (str(database.todays_date) in last_line) and (q != j):
+                    #     print("New same-day pricing found!")
+                    ### THIS CODE ABOVE IS IF WE NEED TO MOVE TO 2 A DAY PRICING (the start of it)
                     text_file.write(f"{self.bulk_json_url}\n")
                     print("New pricing found!  The latest URL has been recorded.")
-                    # database.make_column()
-                    # database.update_price(self.generator_from_json())
+                    database.make_column()
+                    database.update_price(self.generator_from_json())
                     database.add_card_to_db(self.generator_from_json())
                     
     def generator_from_json(self):
@@ -49,4 +53,3 @@ class MtgJson():
                 if (card_object.get("tcgplayer_id") is not None) and (card_object["prices"]["usd"] is not None):
                     # yield card_object["name"], card_object["set"], card_object["prices"]["usd"], card_object["reserved"], card_object.get('tcgplayer_id')
                     yield card_object.get('tcgplayer_id'), card_object["name"], card_object["set"], card_object["reserved"], card_object["prices"]["usd"]
-                    

@@ -11,20 +11,24 @@ class MTGDatabase():
 
         self.con = sqlite3.connect('MTGDatabase.db')
         with self.con:
-            if int(str(datetime.time(datetime.now())).replace(":","").replace(".","")) < 160800000000:
-                self.con.execute(f"""CREATE TABLE IF NOT EXISTS ALLCARDS (tcg_id INT, card_name TEXT, card_set TEXT, is_reserved BOOL, "{self.todays_date}" FLOAT);""")
-            else:
-                self.con.execute(f"""CREATE TABLE IF NOT EXISTS ALLCARDS (tcg_id INT, card_name TEXT, card_set TEXT, is_reserved BOOL, "{self.todays_date + 1}" FLOAT);""")
+            self.con.execute(f"""CREATE TABLE IF NOT EXISTS ALLCARDS (tcg_id INT, card_name TEXT, card_set TEXT, is_reserved BOOL, "{self.todays_date}" FLOAT);""")
+            ###THE CODE BELOW IS FOR A 2-A-DAY PRICE LOGGING###
+            # if int(str(datetime.time(datetime.now())).replace(":","").replace(".","")) < 160800000000:
+            #     self.con.execute(f"""CREATE TABLE IF NOT EXISTS ALLCARDS (tcg_id INT, card_name TEXT, card_set TEXT, is_reserved BOOL, "{self.todays_date}" FLOAT);""")
+            # else:
+            #     self.con.execute(f"""CREATE TABLE IF NOT EXISTS ALLCARDS (tcg_id INT, card_name TEXT, card_set TEXT, is_reserved BOOL, "{self.todays_date + 1}" FLOAT);""")
 
     def json_length(self,json):
         with alive_bar (title="Reticulating Splines...",spinner="waves",enrich_print=False, length=15, bar=None,unknown="wait",stats=False, elapsed=False, monitor=False, elapsed_end="Done!"):
             self.count = len(list(json))
             
     def make_db(self,json):  
-        if int(str(datetime.time(datetime.now())).replace(":","").replace(".","")) < 160800000000:
-            sql = f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date}") values (?, ?, ?, ?, ?)"""
-        else:
-            sql = f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date + 1}") values (?, ?, ?, ?, ?)"""
+        sql = f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date}") values (?, ?, ?, ?, ?)"""
+        ###THE CODE BELOW IS FOR A 2-A-DAY PRICE LOGGING###
+        # if int(str(datetime.time(datetime.now())).replace(":","").replace(".","")) < 160800000000:
+        #     sql = f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date}") values (?, ?, ?, ?, ?)"""
+        # else:
+        #     sql = f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date + 1}") values (?, ?, ?, ?, ?)"""
         with self.con:
             with alive_bar(self.count, title="Building Database...",spinner="waves",enrich_print=False,stats=False,bar=False, monitor_end=False, elapsed_end="Done!") as bar:
                 for i in (json):
@@ -35,6 +39,7 @@ class MTGDatabase():
     def make_column(self):
         with self.con:
             self.con.execute(f"""ALTER TABLE ALLCARDS ADD "{self.todays_date + 1}" FLOAT;""")
+            ###THE CODE BELOW IS FOR A 2-A-DAY PRICE LOGGING###
             # if int(str(datetime.time(datetime.now())).replace(":","").replace(".","")) < 160800000000:
             #     self.con.execute(f"""ALTER TABLE ALLCARDS ADD "{self.todays_date}" FLOAT;""")
             # else:
@@ -46,7 +51,9 @@ class MTGDatabase():
                 for i in json:
                     data = ((i[-1], i[0]),)
                     bar()
-                    self.con.executemany(f"""UPDATE ALLCARDS SET "{self.todays_date + 1}" = ? WHERE tcg_id = ? """, data)
+                    self.con.executemany(f"""UPDATE ALLCARDS SET "{self.todays_date}" = ? WHERE tcg_id = ? """, data)
+                    ###THE CODE BELOW IS FOR A 2-A-DAY PRICE LOGGING###
+                    #self.con.executemany(f"""UPDATE ALLCARDS SET "{self.todays_date + 1}" = ? WHERE tcg_id = ? """, data)
 
     def add_card_to_db(self, json): # TODO:  Look at this again
         with self.con:
@@ -56,7 +63,9 @@ class MTGDatabase():
                     # data = ((item,) for item in new_row)
                     data = (new_row + (new_row[0],),)
                     bar()
-                    self.con.executemany(f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date + 1}") SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM ALLCARDS WHERE tcg_id = ?)""", data)
+                    self.con.executemany(f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date}") SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM ALLCARDS WHERE tcg_id = ?)""", data)
+                    ###THE CODE BELOW IS FOR A 2-A-DAY PRICE LOGGING - TOP LINE ONLY, NOT BOTH###
+                    #self.con.executemany(f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date + 1}") SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM ALLCARDS WHERE tcg_id = ?)""", data)
                     # self.con.execute(f"""INSERT INTO ALLCARDS (tcg_id, card_name, card_set, is_reserved, "{self.todays_date + 1}") SELECT ?, ?, ?, ?, ? WHERE NOT EXISTS (SELECT 1 FROM ALLCARDS WHERE tcg_id = ?)""", new_row + (new_row[0],))
   
     def get_card_by_name(self, player_search):  # Gathers all cards of a selected name from the DB. 
@@ -64,7 +73,7 @@ class MTGDatabase():
             data = self.con.execute(f"""SELECT * FROM ALLCARDS WHERE card_name = ("{player_search}");""")
             self.card_list_by_name = data.fetchall()
             if self.card_list_by_name != []:  # If a card exists by that name in the DB:                          
-                keys = ["card_name", "card_set", "mkt_price", "tcg_id"]
+                keys = ["tcg_id", "card_name", "card_set", "is_reserved","mkt_price"]
                 dict_list = []
                 for i in range(len(self.card_list_by_name)):
                     dict_list.append(dict(zip(keys, self.card_list_by_name[i])))
@@ -79,7 +88,7 @@ class MTGDatabase():
             data = self.con.execute(f"""SELECT * FROM ALLCARDS WHERE tcg_id = ("{tcg_search}");""")
             self.card_list_by_tcg= data.fetchall()
             if self.card_list_by_tcg != []:  # If a card exists by that TCG ID# in the DB:                            
-                keys = ["card_name", "card_set", "mkt_price", "tcg_id"]
+                keys = ["tcg_id", "card_name", "card_set", "is_reserved","mkt_price"]
                 dict_list = []
                 for i in range(len(self.card_list_by_tcg)):
                     dict_list.append(dict(zip(keys, self.card_list_by_tcg[i])))
@@ -88,3 +97,18 @@ class MTGDatabase():
             elif self.card_list_by_tcg == []:
                 print("No match found for that TCG ID #")
             return self.card_list_by_tcg # Returns either an empty list, or a dictionary of the card with that specific TCG ID#.           
+    
+    def get_cards_in_set(self, set_search):  # Gathers card of a specific TCG ID # from the DB.
+        with self.con:
+            data = self.con.execute(f"""SELECT * FROM ALLCARDS WHERE card_set = ("{set_search}");""")
+            self.card_list_by_set= data.fetchall()
+            if self.card_list_by_set != []:  # If a card exists by that TCG ID# in the DB:                            
+                keys = ["tcg_id", "card_name", "card_set", "is_reserved","mkt_price"]
+                dict_list = []
+                for i in range(len(self.card_list_by_set)):
+                    dict_list.append(dict(zip(keys, self.card_list_by_set[i])))
+                for cards in dict_list:
+                    print(cards)
+            elif self.card_list_by_set == []:
+                print("No match found for that TCG ID #")
+            return self.card_list_by_set # Returns either an empty list, or a dictionary of the card with that specific set. 
