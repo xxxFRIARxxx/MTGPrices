@@ -1,4 +1,5 @@
 import sqlite3
+import csv
 import os
 from datetime import datetime
 from alive_progress import alive_bar
@@ -38,7 +39,7 @@ class MTGDatabase():
                      
     def make_column(self):
         with self.con:
-            self.con.execute(f"""ALTER TABLE ALLCARDS ADD "{self.todays_date + 1}" FLOAT;""")
+            self.con.execute(f"""ALTER TABLE ALLCARDS ADD "{self.todays_date}" FLOAT;""")
             ###THE CODE BELOW IS FOR A 2-A-DAY PRICE LOGGING###
             # if int(str(datetime.time(datetime.now())).replace(":","").replace(".","")) < 160800000000:
             #     self.con.execute(f"""ALTER TABLE ALLCARDS ADD "{self.todays_date}" FLOAT;""")
@@ -98,11 +99,11 @@ class MTGDatabase():
                 print("No match found for that TCG ID #")
             return self.card_list_by_tcg # Returns either an empty list, or a dictionary of the card with that specific TCG ID#.           
     
-    def get_cards_in_set(self, set_search):  # Gathers card of a specific TCG ID # from the DB.
+    def get_cards_in_set(self, set_search):  # Gathers the entire set (from abbreviation) from the DB.
         with self.con:
             data = self.con.execute(f"""SELECT * FROM ALLCARDS WHERE card_set = ("{set_search}");""")
             self.card_list_by_set= data.fetchall()
-            if self.card_list_by_set != []:  # If a card exists by that TCG ID# in the DB:                            
+            if self.card_list_by_set != []:  # If a card exists by that set abbreviation in the DB:                            
                 keys = ["tcg_id", "card_name", "card_set", "is_reserved","mkt_price"]
                 dict_list = []
                 for i in range(len(self.card_list_by_set)):
@@ -110,5 +111,19 @@ class MTGDatabase():
                 for cards in dict_list:
                     print(cards)
             elif self.card_list_by_set == []:
-                print("No match found for that TCG ID #")
-            return self.card_list_by_set # Returns either an empty list, or a dictionary of the card with that specific set. 
+                print("No match found for that set #")
+            return self.card_list_by_set # Returns either an empty list, or a dictionary of the cards in a specific set. 
+    
+    def convert_db_to_csv(self, db_filename, csv_filename):
+        # Connect to the SQLite database
+        self.con = sqlite3.connect(db_filename)
+        with self.con:
+            data = self.con.execute(f"SELECT * FROM ALLCARDS")
+            rows = data.fetchall()
+            column_names = [desc[0] for desc in data.description]
+        with open(csv_filename, 'w', newline='') as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(column_names)
+            csv_writer.writerows(rows)
+        print(f"CSV file saved as {csv_filename}")
+    

@@ -7,11 +7,6 @@ database = MTGDatabase.MTGDatabase()
 the_json.get_latest_json_url()
 the_json.url_and_db_manager()
 
-# database.make_column() 
-# database.update_price(the_json.generator_from_json())
-# database.add_card_to_db(the_json.generator_from_json())
-# database.add_card_to_db(the_json.generator_from_json())
-
 # database.get_card_by_tcgID("12684")
 # database.get_card_by_name("Sol Ring")
 # database.get_cards_in_set("mh2")

@@ -29,27 +29,25 @@ class MtgJson():
                 database.make_db(self.generator_from_json())
             elif lines != []:
                 last_line = lines[-1].rstrip()
-                q = last_line.split("-")[-1].rsplit(".")[0].rsplit(str(database.todays_date))[-1]
-                j = self.bulk_json_url.split("-")[-1].rsplit(".")[0].rsplit(str(database.todays_date))[-1]
-                # print(last_line)
-                # print(q)                
-                # print(j) 
+                ### THE CODE COMMENTED OUT BELOW IS IF WE NEED TO MOVE TO 2-A-DAY PRICING
+                # q = last_line.split("-")[-1].rsplit(".")[0].rsplit(str(database.todays_date))[-1]
+                # j = self.bulk_json_url.split("-")[-1].rsplit(".")[0].rsplit(str(database.todays_date))[-1]
                 if (last_line == self.bulk_json_url) or (str(database.todays_date) in last_line): #or (q == j): commented out code is for 2-a-day pricing
                     print("Same pricing as last time.  Check again tomorrow after 4:08am/pm CST.")
                 elif last_line != self.bulk_json_url:
+                    ### THE CODE COMMENTED OUT BELOW IS IF WE NEED TO MOVE TO 2-A-DAY PRICING
                     # if (str(database.todays_date) in last_line) and (q != j):
                     #     print("New same-day pricing found!")
-                    ### THIS CODE ABOVE IS IF WE NEED TO MOVE TO 2 A DAY PRICING (the start of it)
                     text_file.write(f"{self.bulk_json_url}\n")
                     print("New pricing found!  The latest URL has been recorded.")
                     database.make_column()
                     database.update_price(self.generator_from_json())
                     database.add_card_to_db(self.generator_from_json())
+                    database.convert_db_to_csv('MTGDatabase.db', 'ALLCARDS.csv')
                     
     def generator_from_json(self):
         with urlopen(f"{self.bulk_json_url}") as default_cards_response:
             default_cards_data = json.loads(default_cards_response.read().decode('utf-8'))
             for card_object in default_cards_data:
                 if (card_object.get("tcgplayer_id") is not None) and (card_object["prices"]["usd"] is not None):
-                    # yield card_object["name"], card_object["set"], card_object["prices"]["usd"], card_object["reserved"], card_object.get('tcgplayer_id')
                     yield card_object.get('tcgplayer_id'), card_object["name"], card_object["set"], card_object["reserved"], card_object["prices"]["usd"]
